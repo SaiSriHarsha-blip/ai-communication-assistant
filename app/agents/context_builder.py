@@ -3,6 +3,9 @@ from typing import Any
 from app.models.enums import Language
 from app.models.message import MessageRequest
 
+import logging
+
+logger = logging.getLogger(__name__)
 
 class ContextBuilder:
     """
@@ -12,7 +15,7 @@ class ContextBuilder:
     It also determines whether clarification is required
     before invoking the LLM.
     """
-
+    logger.info("Context Builder started.")    
     RELATIONSHIP_CONFIDENCE_THRESHOLD = 0.8
 
     CLARIFICATION_QUESTIONS = {
@@ -78,8 +81,16 @@ class ContextBuilder:
         question = None
 
         if missing_fields:
+            logger.info(
+                "Clarification required | Missing fields=%s",
+                missing_fields,
+            )
+
             first_missing = missing_fields[0]
             question = self.CLARIFICATION_QUESTIONS.get(first_missing)
+
+        else:
+            logger.info("Context complete. No clarification required.")
 
         return {
             "context": context,

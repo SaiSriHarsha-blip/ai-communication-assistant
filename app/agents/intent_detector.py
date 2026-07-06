@@ -4,6 +4,10 @@ from typing import Any
 from app.models.enums import Relationship, Tone
 from app.models.message import MessageRequest
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class IntentDetector:
     """
@@ -118,6 +122,7 @@ class IntentDetector:
 
         Returns structured information for downstream agents.
         """
+        logger.info("Intent Detector started.")
 
         relationship, relationship_conf = (
             (request.relationship, 1.0)
@@ -132,7 +137,13 @@ class IntentDetector:
         )
 
         purpose, purpose_conf = self._detect_purpose(request.message)
-
+        logger.info(
+            "Intent detected | Relationship=%s | Tone=%s | Purpose=%s",
+            relationship,
+            tone,
+            purpose,
+        )
+               
         return {
             "platform": request.platform,
             "relationship": relationship,
@@ -140,6 +151,6 @@ class IntentDetector:
             "language": request.language,
             "tone": tone,
             "tone_confidence": tone_conf,
-            "purpose": purpose,
-            "purpose_confidence": purpose_conf,
-        }
+    "purpose": purpose,
+    "purpose_confidence": purpose_conf,
+}

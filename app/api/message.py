@@ -1,6 +1,6 @@
 from typing import Union
 import logging
-
+from app.security.prompt_guard import contains_prompt_injection
 # pyrefly: ignore [missing-import]
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -17,6 +17,14 @@ from app.services.llm_factory import LLMFactory
 from app.services.message_generation_service import (
     MessageGenerationService,
 )
+
+# pyrefly: ignore [missing-import]
+from slowapi import Limiter
+# pyrefly: ignore [missing-import]
+from slowapi.util import get_remote_address
+# pyrefly: ignore [missing-import]
+from fastapi import Request
+limiter = Limiter(key_func=get_remote_address)
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +56,9 @@ def get_communication_agent() -> CommunicationAgent:
     response_model=Union[MessageContext, MessageResponse],
     summary="Generate AI Message",
 )
+@limiter.limit("10/minute")
 async def generate_message(
+    http_request: Request,
     request: MessageRequest,
     communication_agent: CommunicationAgent = Depends(
         get_communication_agent
@@ -62,18 +72,30 @@ async def generate_message(
         logger.info("=" * 60)
         logger.info("Incoming Request")
         logger.info(request.model_dump())
+        # AI Prompt Injection Protection
+        if contains_prompt_injection(request.message):
+            logger.warning("Prompt injection attempt detected.")
+
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Potential prompt injection detected. Request rejected.",
+            )
 
         response = communication_agent.process(request)
+
 
         logger.info("Workflow completed successfully.")
         logger.info("=" * 60)
 
         return response
 
+    except HTTPException:
+        raise
+
     except Exception as exc:
         logger.exception("Message generation failed.")
 
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(exc),
-        )
+    raise HTTPException(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        detail="Internal server error.",
+    )

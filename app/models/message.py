@@ -8,41 +8,29 @@ from app.models.enums import (
     Tone,
 )
 
+# pyrefly: ignore [missing-import]
+from pydantic import BaseModel, Field, field_validator
+from typing import Optional
 
 class MessageRequest(BaseModel):
-    """
-    Incoming request from the client.
-    """
-
     message: str = Field(
         ...,
-        min_length=1,
-        description="Original user message.",
-        examples=[
-            "Tell my manager I'll be 20 minutes late because of traffic."
-        ],
+        min_length=5,
+        max_length=1000,
+        description="The user's raw message."
     )
 
-    platform: Platform | None = Field(
-        default=None,
-        description="Target communication platform.",
-    )
+    platform: Optional[Platform] = None
 
-    relationship: Relationship | None = Field(
-        default=None,
-        description="Relationship with the recipient.",
-    )
+    @field_validator("message")
+    @classmethod
+    def validate_message(cls, value: str) -> str:
+        value = value.strip()
 
-    language: Language | None = Field(
-        default=Language.ENGLISH,
-        description="Preferred language.",
-    )
+        if not value:
+            raise ValueError("Message cannot be empty.")
 
-    tone: Tone | None = Field(
-        default=None,
-        description="Preferred tone.",
-    )
-
+        return value
 
 class MessageVariant(BaseModel):
     """

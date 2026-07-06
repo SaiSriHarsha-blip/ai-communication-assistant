@@ -28,8 +28,8 @@ class CommunicationAgent:
         1. Detect intent
         2. Build context
         3. Request clarification if needed
-        4. Delegate message generation
-        5. Return final response
+        4. Generate AI messages
+        5. Return structured response
     """
 
     def __init__(
@@ -38,7 +38,6 @@ class CommunicationAgent:
         context_builder: ContextBuilder,
         message_generation_service: MessageGenerationService,
     ) -> None:
-
         self.intent_detector = intent_detector
         self.context_builder = context_builder
         self.message_generation_service = message_generation_service
@@ -47,24 +46,29 @@ class CommunicationAgent:
         self,
         request: MessageRequest,
     ) -> MessageContext | MessageResponse:
+        """
+        Execute the complete communication workflow.
+        """
 
-        logger.info("Starting communication workflow.")
+        logger.info("=" * 60)
+        logger.info("Communication Agent started.")
 
         try:
-
-            # -----------------------------------------
-            # Step 1: Detect Intent
-            # -----------------------------------------
+            # -------------------------------------------------
+            # Step 1 — Intent Detection
+            # -------------------------------------------------
+            logger.info("Step 1/5 → Detect Intent")
 
             detected = self.intent_detector.detect(request)
 
-            # -----------------------------------------
-            # Step 2: Build Context
-            # -----------------------------------------
+            # -------------------------------------------------
+            # Step 2 — Context Building
+            # -------------------------------------------------
+            logger.info("Step 2/5 → Build Context")
 
             context_result = self.context_builder.build_context(
-                request,
-                detected,
+                request=request,
+                detected=detected,
             )
 
             context = context_result["context"]
@@ -86,23 +90,31 @@ class CommunicationAgent:
                 question=context_result.get("question"),
             )
 
-            # -----------------------------------------
-            # Step 3: Ask Clarification
-            # -----------------------------------------
+            # -------------------------------------------------
+            # Step 3 — Clarification Check
+            # -------------------------------------------------
+            logger.info("Step 3/5 → Check Clarification")
 
             if message_context.needs_clarification:
                 logger.info("Clarification required.")
+                logger.info(
+                    "Workflow paused until user provides missing information."
+                )
+
                 return message_context
 
-            # -----------------------------------------
-            # Step 4: Generate Messages
-            # -----------------------------------------
+            logger.info("Context complete. Continuing workflow.")
+
+            # -------------------------------------------------
+            # Step 4 — AI Message Generation
+            # -------------------------------------------------
+            logger.info("Step 4/5 → Generate AI Messages")
 
             generated_messages = (
                 self.message_generation_service.generate(
                     message=request.message,
                     context=message_context.model_dump(
-                        exclude_none=True
+                        exclude_none=True,
                     ),
                 )
             )
@@ -112,9 +124,12 @@ class CommunicationAgent:
                 len(generated_messages),
             )
 
-            # -----------------------------------------
-            # Step 5: Return Response
-            # -----------------------------------------
+            # -------------------------------------------------
+            # Step 5 — Return Structured Response
+            # -------------------------------------------------
+            logger.info("Step 5/5 → Returning structured response")
+            logger.info("Communication workflow completed successfully.")
+            logger.info("=" * 60)
 
             return MessageResponse(
                 original_message=request.message,
@@ -125,10 +140,7 @@ class CommunicationAgent:
                 detected_tone=message_context.tone,
             )
 
-        except Exception as exc:
+        except Exception:
+            logger.exception("Communication workflow failed.")
 
-            logger.exception(
-                "Communication workflow failed."
-            )
-
-            raise 
+            raise

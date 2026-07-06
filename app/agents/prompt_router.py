@@ -63,10 +63,14 @@ class PromptRouter:
         for file_path in candidates:
             if file_path.is_file():
                 try:
+                    logger.info("Prompt selected: %s", file_path.name)
                     return file_path.read_text(encoding="utf-8")
                 except OSError as e:
-                    logger.warning(f"Failed to read prompt file {file_path}: {e}")
-
+                    logger.warning(
+                        "Failed to read prompt file %s: %s",
+                        file_path,
+                        e,
+                    )
         # Ultimate hardcoded fallback if absolutely no templates exist
         logger.warning("No prompt templates found. Using generic hardcoded fallback.")
         return (

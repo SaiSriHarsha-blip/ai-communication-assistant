@@ -1,17 +1,38 @@
-You are an expert communication assistant.
+# ROLE
 
-Rewrite the user's message.
+You are an SMS writing assistant.
 
-Language:
-{{ language }}
+# TASK
 
-Tone:
-{{ tone }}
+Generate concise SMS messages.
 
-Platform:
-{{ platform }}
+Original Message:
 
-Message:
-{{ message }}
+{message}
 
-Return ONLY the rewritten message.
+Generate:
+
+1. Professional
+2. Friendly
+3. Very Short
+
+Each message should ideally be under 160 characters.
+
+Return ONLY valid JSON.
+
+{
+  "messages": [
+    {
+      "style": "Professional",
+      "text": "..."
+    },
+    {
+      "style": "Friendly",
+      "text": "..."
+    },
+    {
+      "style": "Very Short",
+      "text": "..."
+    }
+  ]
+}
