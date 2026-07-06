@@ -1,8 +1,16 @@
 from typing import Union
 import logging
-from app.security.prompt_guard import contains_prompt_injection
+
 # pyrefly: ignore [missing-import]
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import (
+    APIRouter,
+    Depends,
+    HTTPException,
+    Request,
+    status,
+)
+
+from app.security.prompt_guard import contains_prompt_injection
 
 from app.models.context import MessageContext
 from app.models.message import MessageRequest, MessageResponse
@@ -18,13 +26,7 @@ from app.services.message_generation_service import (
     MessageGenerationService,
 )
 
-# pyrefly: ignore [missing-import]
-from slowapi import Limiter
-# pyrefly: ignore [missing-import]
-from slowapi.util import get_remote_address
-# pyrefly: ignore [missing-import]
-from fastapi import Request
-limiter = Limiter(key_func=get_remote_address)
+from app.core.rate_limiter import limiter
 
 logger = logging.getLogger(__name__)
 
@@ -58,8 +60,8 @@ def get_communication_agent() -> CommunicationAgent:
 )
 @limiter.limit("10/minute")
 async def generate_message(
-    http_request: Request,
-    request: MessageRequest,
+    request: Request,
+    message_request: MessageRequest,
     communication_agent: CommunicationAgent = Depends(
         get_communication_agent
     ),
@@ -71,9 +73,9 @@ async def generate_message(
     try:
         logger.info("=" * 60)
         logger.info("Incoming Request")
-        logger.info(request.model_dump())
-        # AI Prompt Injection Protection
-        if contains_prompt_injection(request.message):
+        logger.info(message_request.model_dump())
+
+        if contains_prompt_injection(message_request.message):
             logger.warning("Prompt injection attempt detected.")
 
             raise HTTPException(
@@ -81,8 +83,7 @@ async def generate_message(
                 detail="Potential prompt injection detected. Request rejected.",
             )
 
-        response = communication_agent.process(request)
-
+        response = communication_agent.process(message_request)
 
         logger.info("Workflow completed successfully.")
         logger.info("=" * 60)
@@ -92,10 +93,10 @@ async def generate_message(
     except HTTPException:
         raise
 
-    except Exception as exc:
+    except Exception:
         logger.exception("Message generation failed.")
 
-    raise HTTPException(
-        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-        detail="Internal server error.",
-    )
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error.",
+        )

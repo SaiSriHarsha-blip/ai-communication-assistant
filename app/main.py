@@ -1,39 +1,39 @@
 # pyrefly: ignore [missing-import]
 from fastapi import FastAPI
+
 # pyrefly: ignore [missing-import]
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.message import router as message_router
-
-from app.core.exception_handlers import register_exception_handlers
-
-# pyrefly: ignore [missing-import]
-from slowapi import Limiter
-# pyrefly: ignore [missing-import]
-from slowapi.util import get_remote_address
 # pyrefly: ignore [missing-import]
 from slowapi.errors import RateLimitExceeded
+
 # pyrefly: ignore [missing-import]
 from slowapi.middleware import SlowAPIMiddleware
+
 # pyrefly: ignore [missing-import]
 from slowapi import _rate_limit_exceeded_handler
+
+from app.api.message import router as message_router
+
 from app.core.exception_handler import register_exception_handlers
-
 from app.core.logging_middleware import LoggingMiddleware
-
 from app.core.security_headers import SecurityHeadersMiddleware
-# Initialize the FastAPI application
+from app.core.rate_limiter import limiter
+
 app = FastAPI(
     title="AI Communication Agent",
     description="An AI agent that generates platform-specific messages.",
     version="0.1.0",
 )
 
+# Register exception handlers
 register_exception_handlers(app)
+
+# Middlewares
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(LoggingMiddleware)
-limiter = Limiter(key_func=get_remote_address)
 
+# Rate Limiter
 app.state.limiter = limiter
 
 app.add_exception_handler(
@@ -42,8 +42,8 @@ app.add_exception_handler(
 )
 
 app.add_middleware(SlowAPIMiddleware)
-register_exception_handlers(app)
-# Enable CORS for the frontend
+
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
@@ -55,6 +55,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Routes
 app.include_router(
     message_router,
     prefix="/api/v1",
@@ -64,7 +65,7 @@ app.include_router(
 @app.get("/health")
 async def health_check():
     """
-    Health check endpoint to verify that the application is running.
+    Health check endpoint.
     """
     return {
         "status": "ok",
