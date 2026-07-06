@@ -7,7 +7,7 @@ export const siteConfig = {
   name: "MessagePilot",
   description:
     "An AI-powered message assistant for clearer, faster communication across everyday platforms.",
-  githubUrl: "https://github.com/",
+  githubUrl: "https://github.com/SaiSriHarsha-blip/ai-communication-assistant",
   navItems: [
     { label: "Product", href: "#product" },
     { label: "Platforms", href: "#platforms" },
