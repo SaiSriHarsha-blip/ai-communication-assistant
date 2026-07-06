@@ -1,4 +1,4 @@
-# 🚀 MessagePilot
+# MessagePilot
 
 ## AI Communication Assistant
 
@@ -39,11 +39,10 @@ MessagePilot follows a modular AI pipeline that separates deterministic analysis
 
 ## Workflow Diagram
 
-![Architecture](architecture.png)
+<img width="1536" height="1024" alt="architecture" src="https://github.com/user-attachments/assets/d354b70c-206d-4f91-9d41-dea16f9433c0" />
 
 ### Request Flow
-
-
+```text
 User
   │
   ▼
@@ -68,6 +67,7 @@ Gemini 2.5 Flash
   │
   ▼
 Structured Response
+ ```
 
 ## 🛠 Tech Stack
 
@@ -97,26 +97,36 @@ Structured Response
 
 ## 📁 Folder Structure
 
-
+```text
 MessagePilot/
 ├── app/
-│   ├── agents/
-│   ├── api/
-│   ├── core/
-│   ├── models/
-│   ├── prompts/
-│   ├── security/
-│   ├── services/
-│   └── main.py
+│   ├── agents/          # Core workflow agents
+│   ├── api/             # REST API routes
+│   ├── core/            # Middleware & configuration
+│   ├── models/          # Pydantic schemas
+│   ├── prompts/         # Prompt templates
+│   ├── security/        # Prompt guard & security
+│   ├── services/        # Gemini & message generation
+│   └── main.py          # FastAPI entry point
+│
 ├── frontend/
-│   ├── src/
 │   ├── public/
-│   └── package.json
+│   ├── src/
+│   │   ├── app/
+│   │   ├── components/
+│   │   ├── features/
+│   │   ├── hooks/
+│   │   ├── lib/
+│   │   ├── constants/
+│   │   └── types/
+│   ├── package.json
+│   └── next.config.ts
+│
 ├── tests/
 ├── requirements.txt
 ├── .env.example
 └── README.md
-
+```
 
 ## 🔐 Security
 
