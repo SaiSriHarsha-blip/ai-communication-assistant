@@ -26,6 +26,7 @@ from app.services.message_generation_service import (
     MessageGenerationService,
 )
 
+from app.config import settings
 from app.core.rate_limiter import limiter
 
 logger = logging.getLogger(__name__)
@@ -58,8 +59,8 @@ def get_communication_agent() -> CommunicationAgent:
     response_model=Union[MessageContext, MessageResponse],
     summary="Generate AI Message",
 )
-@limiter.limit("10/minute")
-async def generate_message(
+@limiter.limit(settings.RATE_LIMIT)
+def generate_message(
     request: Request,
     message_request: MessageRequest,
     communication_agent: CommunicationAgent = Depends(

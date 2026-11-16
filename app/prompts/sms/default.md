@@ -8,7 +8,7 @@ Generate concise SMS messages.
 
 Original Message:
 
-{message}
+{{ message }}
 
 Generate:
 

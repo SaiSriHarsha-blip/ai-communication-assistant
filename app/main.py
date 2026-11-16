@@ -14,6 +14,7 @@ from slowapi.middleware import SlowAPIMiddleware
 from slowapi import _rate_limit_exceeded_handler
 
 from app.api.message import router as message_router
+from app.config import settings
 
 from app.core.exception_handler import register_exception_handlers
 from app.core.logging_middleware import LoggingMiddleware
@@ -46,11 +47,7 @@ app.add_middleware(SlowAPIMiddleware)
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-        "https://ai-communication-assistant-sri-harsha.vercel.app",
-    ],
+    allow_origins=settings.get_all_allowed_origins(),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -72,4 +69,5 @@ async def health_check():
         "status": "ok",
         "project": "AI Communication Agent",
         "version": "0.1.0",
+        "environment": settings.ENVIRONMENT,
     }

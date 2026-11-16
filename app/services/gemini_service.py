@@ -3,18 +3,15 @@ import os
 from pathlib import Path
 
 # pyrefly: ignore [missing-import]
-from dotenv import load_dotenv
-# pyrefly: ignore [missing-import]
 from google import genai
 # pyrefly: ignore [missing-import]
 from google.genai import types
 # pyrefly: ignore [missing-import]
 from google.genai.errors import APIError
 
+from app.config import settings
 from app.models.gemini_response import GeminiResponse
 from app.services.base_llm import BaseLLM
-
-load_dotenv(Path(".env"))
 
 logger = logging.getLogger(__name__)
 
@@ -35,21 +32,28 @@ class GeminiService(BaseLLM):
 
     DEFAULT_MODEL = "gemini-2.5-flash"
 
-    def __init__(self) -> None:
-        api_key = os.getenv("GEMINI_API_KEY")
+    def __init__(
+        self,
+        api_key: str | None = None,
+        model_name: str | None = None,
+    ) -> None:
+        key = api_key or (
+            settings.GEMINI_API_KEY.get_secret_value()
+            if settings.GEMINI_API_KEY
+            else ""
+        )
 
-        if not api_key:
+        if not key:
             raise GeminiServiceError(
                 "GEMINI_API_KEY not found. Please configure your .env file."
             )
 
-        self.model_name = os.getenv(
-            "GEMINI_MODEL",
-            self.DEFAULT_MODEL,
+        self.model_name = (
+            model_name or settings.GEMINI_MODEL or self.DEFAULT_MODEL
         )
 
         try:
-            self.client = genai.Client(api_key=api_key)
+            self.client = genai.Client(api_key=key)
 
             logger.info(
                 "Gemini initialized successfully (%s)",
